@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <canvas id="myCanvas" width="1000" height="1000" style="border:1px solid black;">Your browser does not support the canvas element.</canvas>
+    <script> "use strict"
+    class Star {
+      constructor(context, size = 40, x = 0, y = 0, velocity_x = 1, velocity_y =1, color = "yellow") {
+      this.velocity_x = velocity_x;
+      this.velocity_y = velocity_y;
+      this.color = color;
+      this.context = context;
+      this.size = size;
+      this.x = x;
+      this.y = y;
+
+      this.planets = [];
+      }
+      getPlanet(number = 0) {
+        return this.planets[number];
+      }
+      
+      addPlanet(size = 10, distance = 50, velocity = 0.2, color = "blue") {
+        var planet = new Planet(this, size, distance, velocity, color);
+
+        this.planets.push(planet);
+      }
+
+      draw() {
+
+        this.context.beginPath();
+
+        this.context.save();
+        this.context.translate(this.x, this.y);
+        this.context.arc(0, 0, this.size, 0, Math.PI *2, false);
+        this.context.fillStyle = this.color;
+        this.context.fill();
+        this.context.lineWidth =1;
+        this.context.strokeStyle = this.color;
+        this.context.stroke();
+
+        this.context.restore();
+
+        this.planets.forEach(function(c) {c.draw();})
+
+      }
+
+      update() {
+        this.x = this.x + this.velocity_x;
+        this.y = this.y + this.velocity_y;
+
+        if (this.x > this.context.canvas.width) {
+          this.velocity_x = -Math.abs(this.velocity_x);
+        }
+        if (this.x < 0) {
+          this.velocity_x = Math.abs(this.velocity_x);
+        }
+        if (this.y > this.context.canvas.height) {
+          this.velocity_y = -Math.abs(this.velocity_y);
+        }
+        if (this.y < 0) {
+          this.velocity_y = Math.abs(this.velocity_y);
+        }
+        this.planets.forEach(function(c) {c.update();})
+      }
+    }
+
+    class Planet {
+      constructor(star, size = 10, distance = 50, velocity =1, color = "yellow") {
+      this.star = star;
+      this.context = star.context;
+      this.color = color;
+
+      this.distance = distance;
+      this.velocity = velocity;
+      this.angle = 0;
+      this.x = 0;
+      this.y = 0;
+
+      this.size = size;
+
+      this.moons = [];
+      }
+
+      addMoon(size = 1, distance = 5, velocity = 0.002, color = "gray") {
+        var moon = new Moon(this, size, distance, velocity, color);
+
+        this.moons.push(moon);
+      }
+
+      update() {
+        this.angle = this.angle + this.velocity;
+
+        this.x = this.star.x + Math.cos(this.angle) * this.distance;
+        this.y = this.star.y + Math.sin(this.angle) * this.distance;
+        this.moons.forEach(function(c) {c.update();})
+      }
+
+      draw() {
+
+        this.context.beginPath();
+
+        this.context.save();
+        this.context.translate(this.x, this.y);
+        this.context.arc(0, 0, this.size, 0, Math.PI *2, false);
+        this.context.fillStyle = this.color;
+        this.context.fill();
+        this.context.lineWidth =1;
+        this.context.strokeStyle = this.color;
+        this.context.stroke();
+
+
+        this.context.restore();
+        this.moons.forEach(function(c) {c.draw();})
+      }
+    }
+
+    class Moon {
+      constructor(planet, size = 1, distance = 5, velocity =0.001, color = "gray") {
+      this.planet = planet
+      this.star = planet.star;
+      this.context = planet.star.context;
+      this.color = color;
+
+      this.distance = distance;
+      this.velocity = velocity;
+      this.angle = 0;
+      this.x = 0;
+      this.y = 0;
+
+      this.size = size;
+      }
+
+      update() {
+        this.angle = this.angle + this.velocity;
+
+        this.x = this.planet.x + Math.cos(this.angle) * this.distance;
+        this.y = this.planet.y + Math.sin(this.angle) * this.distance;
+        
+      }
+
+      draw() {
+
+        this.context.beginPath();
+
+        this.context.save();
+        this.context.translate(this.x, this.y);
+        this.context.arc(0, 0, this.size, 0, Math.PI *2, false);
+        this.context.fillStyle = this.color;
+        this.context.fill();
+        this.context.lineWidth =1;
+        this.context.strokeStyle = this.color;
+        this.context.stroke();
+
+        this.context.restore();
+      }
+    }
+  
+
+    window.onload = function() {
+      var canvas = document.getElementById('myCanvas');
+      var context = canvas.getContext("2d");
+      var stars = [];
+      
+      var sun = new Star(context)
+      stars.push(sun)
+      sun.addPlanet(5,80,0.02,"red")
+      sun.addPlanet(10, 150, 0.03, "green")
+      sun.addPlanet(20, 500, 0.01, "gray")
+      sun.getPlanet(1).addMoon(3,30,0.05)
+
+      var blue = new Star(context, 10, 300, 300, 10, 5, "blue")
+      stars.push(blue)
+
+      blue.addPlanet()
+    
+      requestAnimationFrame(Game_loop);
+      function Game_loop() {
+        Update();
+        Draw();
+        requestAnimationFrame(Game_loop);
+      }
+
+      function Update() {
+       stars.forEach(function(c) {c.update();})
+      }
+
+      function Draw() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        stars.forEach(function(c) {c.draw();})
+      }
+    }
+    </script>
+  </body>
+</html>
